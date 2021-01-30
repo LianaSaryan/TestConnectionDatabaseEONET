@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "479863960816",
+    "firebase_url": "https://testdatabaseapi-default-rtdb.firebaseio.com",
+    "project_id": "testdatabaseapi",
+    "storage_bucket": "testdatabaseapi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:479863960816:android:26267202221495e7efbe35",
+        "android_client_info": {
+          "package_name": "com.example.testconnectdatabaseapi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "479863960816-qsukacglgr42guladptuoselne646tsj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqijQKGNS--nxTkIkpSM4fehCiFNg91nI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "479863960816-qsukacglgr42guladptuoselne646tsj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
