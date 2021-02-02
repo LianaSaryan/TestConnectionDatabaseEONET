@@ -1,16 +1,23 @@
 package com.example.testconnectdatabaseapi;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
-
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.text.BreakIterator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
     // establishing database reference
     static FirebaseDatabase database = FirebaseDatabase.getInstance();
 
+    // setting up API request
+    private RequestQueue queue;
+    static String TAG_SEARCH_NAME = "link" ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +56,18 @@ public class MainActivity extends AppCompatActivity {
         readEventData();
         Toast.makeText(MainActivity.this, "Reading to Database Success", Toast.LENGTH_LONG).show();
 
+
+        // prepare to request data from EONET API
+        queue = Volley.newRequestQueue(this);
+
+        // cancelling all requests about this search if in queue
+        queue.cancelAll(TAG_SEARCH_NAME);
+
+        // first StringRequest: getting items searched
+        StringRequest stringRequest = searchNameStringRequest();
+
+        // executing the request (adding to queue)
+        queue.add(stringRequest);
     }
 
     public static void writeEventData(int count, String closed, String description, String id, String link, String title) {
@@ -89,6 +111,71 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         myRef.addValueEventListener(eventListener);
+    }
+
+    private StringRequest searchNameStringRequest() {
+
+          String url = "https://eonet.sci.gsfc.nasa.gov/api/v3/events?limit=2";
+        // 1st param => type of method (GET/PUT/POST/PATCH/etc)
+        // 2nd param => complete url of the API
+        // 3rd param => Response.Listener -> Success procedure
+        // 4th param => Response.ErrorListener -> Error procedure
+        return new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    //3rd param - method onResponse - lays the code procedure of success return
+                    // SUCCESS
+                    @Override
+                    public void onResponse(String response) {
+                        // try/catch block for returned JSON data
+                        // see API's documentation for returned format
+                        try {
+                            JSONObject result = new JSONObject(response);
+//                            int maxItems = result.getInt("end");
+                            JSONArray resultList = result.getJSONArray("events");
+
+                            // display results of events array (for testing)
+                            System.out.println(resultList);
+
+                            // get event data
+                            for (int i = 0; i < resultList.length(); i++) {
+
+                                JSONObject jsonobject = resultList.getJSONObject(i);
+                                event_id = jsonobject.getString("id");
+                                event_title = jsonobject.getString("title");
+                                event_description = jsonobject.getString("description");
+                                event_link = jsonobject.getString("link");
+                                event_closed = jsonobject.getString("closed");
+
+                                // increment count for database index
+                                count++;
+
+                                // write to database
+                                writeEventData(count, event_closed, event_description, event_id, event_link, event_title);
+
+                                // display on screen (for testing)
+                                System.out.println(event_id);
+                                System.out.println(event_title);
+                                System.out.println(event_description);
+                                System.out.println(event_link);
+                                System.out.println(event_closed);
+                            }
+
+                            // catch for the JSON parsing error
+                        } catch (JSONException e) {
+                            System.out.println(e.getMessage());
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    } // public void onResponse(String response)
+                }, // Response.Listener<String>()
+                new Response.ErrorListener() {
+                    // 4th param - method onErrorResponse lays the code procedure of error return
+                    // ERROR
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // display a simple message on the screen
+                        Toast.makeText(MainActivity.this, "Events source is not responding (EONET API)", Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
 }
